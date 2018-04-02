@@ -74,20 +74,15 @@ class ViewUsersState extends State<ViewUsers> {
 
   //final int port = 8080;
   final String getAllUsersURI = "/getAllUsers";
-  final String getUserDetailsURI = "/getUser?id=";
+  final String deleteUserURI = "/deleteUser?id=";
+  HttpClient httpClient = new HttpClient();
 
-  Future<String> httpInteraction(String action) {
-    switch (action) {
-      case 'get':
-    }
 
-    return null;
-  }
 
   Future<List> _getAllUsers() async {
     print("Requesting...");
-    HttpClient httpClient = new HttpClient();
-    Uri.parse(this.URL + this.getAllUsersURI);
+
+    //Uri.parse(this.URL + this.getAllUsersURI);
     var request = await httpClient.getUrl(
         Uri.parse(this.URL + this.getAllUsersURI));
     var response = await request.close();
@@ -97,15 +92,16 @@ class ViewUsersState extends State<ViewUsers> {
     return users;
   }
 
-/*
-  Future<List> getUser(String id) async {
-    var response = await http.get(Uri.encodeFull(URL + getUserDetailsURI + id),
-        headers: {"Accept": "application/json"});
+Future<Null> _deleteUser(String id) async{
+    print("Requesting to delete user with id " + id);
 
-    print(response);
-    return JSON.decode(response);
+    var request = await httpClient.deleteUrl(Uri.parse(this.URL + this.deleteUserURI + id));
+    var response = await request.close();
+
+    print("Successfully deleted user");
+
+    return null;
   }
-*/
 
   @override
   void initState() {
@@ -130,6 +126,7 @@ class ViewUsersState extends State<ViewUsers> {
     )));
   }
 
+
   List<ListTile>  _constructTile() {
     List<ListTile> list = [];
     //var formatter =
@@ -138,18 +135,165 @@ class ViewUsersState extends State<ViewUsers> {
       for (var user in userlist){
       list.add(new ListTile(
         title: new Text(user["name"]),
-       // leading: new Text(user["id"].toString()),
+        onTap: (){Navigator.push(
+            context,
+            new MaterialPageRoute(builder: (context) => new ViewUserDetails(user["id"].toString())));},
+        leading: new Text(user["id"].toString()),
+
         trailing: new IconButton(
             icon: new Icon(
               Icons.delete,
               color: Colors.grey[500],
             ),
-            onPressed: null),
+            onPressed: (){
+              return showDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  child: new AlertDialog(
+                    content: new Text("Are you sure you want to delete this user?"),
+                    actions: <Widget>[
+                      new FlatButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: new Text("Cancel")),
+                      new FlatButton(
+                          onPressed: () async
+              {
+              this._deleteUser(user["id"]
+                  .toString());
+              await setState((){
+                this._getAllUsers();
+                Navigator.pop(context);
+              });
+
+              },
+              child: new Text("Yes, delete this user."))
+                    ],
+
+                  ),
+
+
+              );
+
+            }),
       ));}
 
     }
   return list;
   }
+
+
+
+
+
+}
+
+class ViewUserDetails extends StatefulWidget{
+
+  String id;
+  ViewUserDetails(String id){
+    this.id=id;
+  }
+
+  @override
+  createState() => new ViewUserDetailsState(id);
+
+}
+class ViewUserDetailsState extends State<ViewUserDetails>{
+
+
+  String id;
+  ViewUserDetailsState(String id){
+    print(id);
+   this.id=id;
+  }
+
+
+
+
+  List<Map<dynamic, dynamic>> userDetails=[];
+
+  final String URL = "http://192.168.99.100:8080";
+  final String getUserDetailsURI = "/getUser?id=";
+
+  Future<List> getUserDetails() async {
+   print("Requesting with id " + this.id);
+    HttpClient httpClient = new HttpClient();
+   // Uri.parse(this.URL + this.getUserDetailsURI + this.id);
+    var request = await httpClient.getUrl(
+        Uri.parse(this.URL + this.getUserDetailsURI + this.id));
+    var response = await request.close();
+    userDetails = await response.transform(UTF8.decoder).transform(JSON.decoder).toList();
+    print(userDetails);
+    //print(responseString.toString());
+    return userDetails;
+  }
+
+
+  @override
+  
+  void initState() {
+
+    super.initState();
+    print("Calling getUserDetails with id: " + this.id);
+    this.getUserDetails();
+  }
+
+
+  @override
+  Widget build(BuildContext context){
+  return new Scaffold(
+  appBar: new AppBar(
+  title: new Text("User Details",),
+  centerTitle: true,
+  ),
+  body:
+    new Column(
+    mainAxisAlignment: MainAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: this._constructTile()
+
+
+
+  ),
+
+
+  );
+
+
+  }
+
+  List<ListTile> _constructTile(){
+    List<ListTile> list= [];
+        if (this.userDetails.length != 0)
+          {
+            list.add(
+                new ListTile(
+                  title: new Text("ID: " + userDetails[0]["id"].toString()),
+                  leading: new Icon(Icons.work, color: Colors.grey[600],),
+                )
+            );
+            list.add( new ListTile(
+              title: new Text("Name: " + userDetails[0]["name"]),
+              leading: new Icon(Icons.person, color: Colors.grey[600],),
+            )
+            );
+            list.add(
+                new ListTile(
+                  title: new Text("Date of Birth: " + userDetails[0]["dob"].toString()),
+                  leading: new Icon(Icons.cake, color: Colors.grey[600],),
+                )
+            );
+            list.add(
+                new ListTile(
+                  title: new Text("Age: " + userDetails[0]["age"].toString()),
+                  leading: new Icon(Icons.perm_identity, color: Colors.grey[600],),
+                )
+            );
+          }
+        return list;
+
+  }
+
 
 }
 
