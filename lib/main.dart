@@ -166,7 +166,7 @@ Future<Null> _deleteUser(String id) async{
               });
 
               },
-              child: new Text("Yes, delete this user."))
+              child: new Text("Yes, delete this employee."))
                     ],
 
                   ),
