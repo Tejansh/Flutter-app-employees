@@ -53,7 +53,15 @@ class Home extends StatelessWidget {
                     color: Colors.blue[600],
                   ),
                   //TODO: Add onPressed action to navigate to "Add Users" widget
-                  onPressed: null),
+                  onPressed: (){
+                    Navigator.push(
+                        context,
+                        new MaterialPageRoute(
+                            builder: (context) => new CreateUser()),
+                    );
+
+
+                  }),
             )
           ],
         ),
@@ -121,7 +129,8 @@ Future<Null> _deleteUser(String id) async{
 
       body:
           new Card(
-          child: new Column(
+          child: new ListView(
+            scrollDirection: Axis.vertical,
            children: this._constructTile(),
     )));
   }
@@ -297,5 +306,146 @@ class ViewUserDetailsState extends State<ViewUserDetails>{
 
 }
 
+class CreateUser extends StatefulWidget{
 
+  @override
+  createState()=> new CreateUserState();
+}
+
+
+class CreateUserState extends State<CreateUser>{
+
+  String _username;
+  int _age;
+  DateTime _dob;
+  final TextEditingController controller = new TextEditingController();
+
+  final String URL = "http://192.168.99.100:8080";
+
+  //final int port = 8080;
+  final String createUserURI = "/addUser";
+
+  HttpClient httpClient = new HttpClient();
+
+  var created = false;
+
+
+  selectDate(DateTime date){
+
+    this._dob = date;
+
+    _age =  ((new DateTime.now().difference(_dob)).inHours/8760).ceil();
+    print(_dob);
+
+  }
+
+
+  Future<Null> _selectDate() async{
+
+    final DateTime dob = await showDatePicker(
+        context: context,
+        initialDate: new DateTime(1992,5),
+        firstDate: new DateTime(1900,1),
+        lastDate: new DateTime(2018,1)
+    );
+    if (dob != null){
+       selectDate(dob);
+    }
+    return null;
+
+  }
+
+  Future<Null> _saveUser() async{
+
+   var requestBodyMap = {"name":_username,"dob":_dob.toIso8601String(),"age":_age};
+
+    var requestBodyJson = JSON.encode( requestBodyMap);
+    print(requestBodyJson);
+
+    var request = await httpClient.postUrl(Uri.parse(URL+createUserURI))
+        ..headers.add(HttpHeaders.ACCEPT, ContentType.JSON)
+        ..headers.contentType=ContentType.JSON;
+    
+    request.write(requestBodyJson);
+    HttpClientResponse response = await request.close();
+
+    setState(() =>
+    response.statusCode==HttpStatus.OK?
+              created=true:created=false);
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+  @override
+  Widget build(BuildContext context){
+  return new Scaffold(
+    appBar: new AppBar(
+      title: new Text("Add a new Employee"),
+      centerTitle: true,
+      actions: <Widget>[
+        new IconButton(icon: new Icon(Icons.save,), onPressed: () async {
+          var response = await _saveUser();
+         created? new SimpleDialog(
+          title: new Text("Employee created!"),
+          children: <Widget>[
+            new FlatButton(onPressed: ()=>Navigator.pop(context), child: new Text("Okay"),)
+          ],
+          ):new SimpleDialog(
+            title: new Text("Employee could not be created!"),
+            children: <Widget>[
+              new FlatButton(onPressed: ()=>Navigator.pop(context), child: new Text("Okay"),)
+            ],
+          );
+        })
+      ],
+    ),
+
+    body: new Column(
+      children: <Widget>[
+
+        new ListTile(
+          leading: new Icon(Icons.person),
+          title: new TextField(
+              controller: controller,
+              decoration: new InputDecoration(
+              hintText: "Name",
+            ),
+           autocorrect: false,
+           onChanged: (String name){
+
+              this._username=name;
+           },
+
+          ),
+        ),
+        new ListTile(
+          leading: new Icon(Icons.today),
+          title: new Text("Select date of birth"),
+          onTap: (){
+            _selectDate();
+             },
+
+          )
+
+      ],
+    ),
+
+  );
+
+
+
+
+  }
+
+
+}
 
