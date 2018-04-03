@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/number_symbols_data.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -32,12 +31,12 @@ class Home extends StatelessWidget {
                   Icons.view_list,
                   color: Colors.blue[600],
                 ),
-                //TODO: Add onPressed action to navigate to "ViewUsers" widget
+                //TODO: Add onPressed action to navigate to "ViewEmployees" widget
                 onPressed: () {
                   Navigator.push(
                     context,
                     new MaterialPageRoute(
-                        builder: (context) => new ViewUsers()),
+                        builder: (context) => new ViewEmployees()),
                   );
                 },
               ),
@@ -52,12 +51,12 @@ class Home extends StatelessWidget {
                     Icons.add,
                     color: Colors.blue[600],
                   ),
-                  //TODO: Add onPressed action to navigate to "Add Users" widget
+                  //TODO: Add onPressed action to navigate to "Add Employees" widget
                   onPressed: (){
                     Navigator.push(
                         context,
                         new MaterialPageRoute(
-                            builder: (context) => new CreateUser()),
+                            builder: (context) => new CreateEmployee()),
                     );
 
 
@@ -70,43 +69,43 @@ class Home extends StatelessWidget {
   }
 }
 
-class ViewUsers extends StatefulWidget {
+class ViewEmployees extends StatefulWidget {
   @override
-  ViewUsersState createState() => new ViewUsersState();
+  ViewEmployeesState createState() => new ViewEmployeesState();
 }
 
-class ViewUsersState extends State<ViewUsers> {
-  List<List<Map<dynamic, dynamic>>> users = [];
+class ViewEmployeesState extends State<ViewEmployees> {
+  List<List<Map<dynamic, dynamic>>> employees = [];
 
   final String URL = "http://192.168.99.100:8080";
 
   //final int port = 8080;
-  final String getAllUsersURI = "/getAllUsers";
-  final String deleteUserURI = "/deleteUser?id=";
+  final String getAllEmployeesURI = "/getAllUsers";
+  final String deleteEmployeeURI = "/deleteUser?id=";
   HttpClient httpClient = new HttpClient();
 
 
 
-  Future<List> _getAllUsers() async {
+  Future<List> _getAllEmployees() async {
     print("Requesting...");
 
-    //Uri.parse(this.URL + this.getAllUsersURI);
+    //Uri.parse(this.URL + this.getAllEmployeesURI);
     var request = await httpClient.getUrl(
-        Uri.parse(this.URL + this.getAllUsersURI));
+        Uri.parse(this.URL + this.getAllEmployeesURI));
     var response = await request.close();
-    users = await response.transform(UTF8.decoder).transform(JSON.decoder).toList();
-    print(users);
+    employees = await response.transform(UTF8.decoder).transform(JSON.decoder).toList();
+    print(employees);
     //print(responseString.toString());
-    return users;
+    return employees;
   }
 
-Future<Null> _deleteUser(String id) async{
-    print("Requesting to delete user with id " + id);
+Future<Null> _deleteEmployee(String id) async{
+    print("Requesting to delete employee with id " + id);
 
-    var request = await httpClient.deleteUrl(Uri.parse(this.URL + this.deleteUserURI + id));
+    var request = await httpClient.deleteUrl(Uri.parse(this.URL + this.deleteEmployeeURI + id));
     var response = await request.close();
 
-    print("Successfully deleted user");
+    print("Successfully deleted employee");
 
     return null;
   }
@@ -114,7 +113,7 @@ Future<Null> _deleteUser(String id) async{
   @override
   void initState() {
     super.initState();
-    this._getAllUsers();
+    this._getAllEmployees();
  }
 
 
@@ -123,7 +122,7 @@ Future<Null> _deleteUser(String id) async{
 
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text('List of Users'),
+        title: new Text('List of Employees'),
         centerTitle: true,
       ),
 
@@ -140,14 +139,14 @@ Future<Null> _deleteUser(String id) async{
     List<ListTile> list = [];
     //var formatter =
 
-    for (var userlist in users){
-      for (var user in userlist){
+    for (var employeelist in employees){
+      for (var employee in employeelist){
       list.add(new ListTile(
-        title: new Text(user["name"]),
+        title: new Text(employee["name"]),
         onTap: (){Navigator.push(
             context,
-            new MaterialPageRoute(builder: (context) => new ViewUserDetails(user["id"].toString())));},
-        leading: new Text(user["id"].toString()),
+            new MaterialPageRoute(builder: (context) => new ViewEmployeeDetails(employee["id"].toString())));},
+        leading: new Text(employee["id"].toString()),
 
         trailing: new IconButton(
             icon: new Icon(
@@ -159,7 +158,7 @@ Future<Null> _deleteUser(String id) async{
                   context: context,
                   barrierDismissible: true,
                   child: new AlertDialog(
-                    content: new Text("Are you sure you want to delete this user?"),
+                    content: new Text("Are you sure you want to delete this employee?"),
                     actions: <Widget>[
                       new FlatButton(
                           onPressed: () => Navigator.pop(context),
@@ -167,10 +166,10 @@ Future<Null> _deleteUser(String id) async{
                       new FlatButton(
                           onPressed: () async
               {
-              this._deleteUser(user["id"]
+              this._deleteEmployee(employee["id"]
                   .toString());
               await setState((){
-                this._getAllUsers();
+                this._getAllEmployees();
                 Navigator.pop(context);
               });
 
@@ -196,22 +195,22 @@ Future<Null> _deleteUser(String id) async{
 
 }
 
-class ViewUserDetails extends StatefulWidget{
+class ViewEmployeeDetails extends StatefulWidget{
 
   String id;
-  ViewUserDetails(String id){
+  ViewEmployeeDetails(String id){
     this.id=id;
   }
 
   @override
-  createState() => new ViewUserDetailsState(id);
+  createState() => new ViewEmployeeDetailsState(id);
 
 }
-class ViewUserDetailsState extends State<ViewUserDetails>{
+class ViewEmployeeDetailsState extends State<ViewEmployeeDetails>{
 
 
   String id;
-  ViewUserDetailsState(String id){
+  ViewEmployeeDetailsState(String id){
     print(id);
    this.id=id;
   }
@@ -219,22 +218,22 @@ class ViewUserDetailsState extends State<ViewUserDetails>{
 
 
 
-  List<Map<dynamic, dynamic>> userDetails=[];
+  List<Map<dynamic, dynamic>> employeeDetails=[];
 
   final String URL = "http://192.168.99.100:8080";
-  final String getUserDetailsURI = "/getUser?id=";
+  final String getEmployeeDetailsURI = "/getUser?id=";
 
-  Future<List> getUserDetails() async {
+  Future<List> getEmployeeDetails() async {
    print("Requesting with id " + this.id);
     HttpClient httpClient = new HttpClient();
-   // Uri.parse(this.URL + this.getUserDetailsURI + this.id);
+   // Uri.parse(this.URL + this.getEmployeeDetailsURI + this.id);
     var request = await httpClient.getUrl(
-        Uri.parse(this.URL + this.getUserDetailsURI + this.id));
+        Uri.parse(this.URL + this.getEmployeeDetailsURI + this.id));
     var response = await request.close();
-    userDetails = await response.transform(UTF8.decoder).transform(JSON.decoder).toList();
-    print(userDetails);
+    employeeDetails = await response.transform(UTF8.decoder).transform(JSON.decoder).toList();
+    print(employeeDetails);
     //print(responseString.toString());
-    return userDetails;
+    return employeeDetails;
   }
 
 
@@ -243,8 +242,8 @@ class ViewUserDetailsState extends State<ViewUserDetails>{
   void initState() {
 
     super.initState();
-    print("Calling getUserDetails with id: " + this.id);
-    this.getUserDetails();
+    print("Calling getEmployeeDetails with id: " + this.id);
+    this.getEmployeeDetails();
   }
 
 
@@ -252,7 +251,7 @@ class ViewUserDetailsState extends State<ViewUserDetails>{
   Widget build(BuildContext context){
   return new Scaffold(
   appBar: new AppBar(
-  title: new Text("User Details",),
+  title: new Text("Employee Details",),
   centerTitle: true,
   ),
   body:
@@ -273,28 +272,28 @@ class ViewUserDetailsState extends State<ViewUserDetails>{
 
   List<ListTile> _constructTile(){
     List<ListTile> list= [];
-        if (this.userDetails.length != 0)
+        if (this.employeeDetails.length != 0)
           {
             list.add(
                 new ListTile(
-                  title: new Text("ID: " + userDetails[0]["id"].toString()),
+                  title: new Text("ID: " + employeeDetails[0]["id"].toString()),
                   leading: new Icon(Icons.work, color: Colors.grey[600],),
                 )
             );
             list.add( new ListTile(
-              title: new Text("Name: " + userDetails[0]["name"]),
+              title: new Text("Name: " + employeeDetails[0]["name"]),
               leading: new Icon(Icons.person, color: Colors.grey[600],),
             )
             );
             list.add(
                 new ListTile(
-                  title: new Text("Date of Birth: " + userDetails[0]["dob"].toString()),
+                  title: new Text("Date of Birth: " + employeeDetails[0]["dob"].toString()),
                   leading: new Icon(Icons.cake, color: Colors.grey[600],),
                 )
             );
             list.add(
                 new ListTile(
-                  title: new Text("Age: " + userDetails[0]["age"].toString()),
+                  title: new Text("Age: " + employeeDetails[0]["age"].toString()),
                   leading: new Icon(Icons.perm_identity, color: Colors.grey[600],),
                 )
             );
@@ -306,16 +305,16 @@ class ViewUserDetailsState extends State<ViewUserDetails>{
 
 }
 
-class CreateUser extends StatefulWidget{
+class CreateEmployee extends StatefulWidget{
 
   @override
-  createState()=> new CreateUserState();
+  createState()=> new CreateEmployeeState();
 }
 
 
-class CreateUserState extends State<CreateUser>{
+class CreateEmployeeState extends State<CreateEmployee>{
 
-  String _username;
+  String _employeename;
   int _age;
   DateTime _dob;
   final TextEditingController controller = new TextEditingController();
@@ -323,7 +322,7 @@ class CreateUserState extends State<CreateUser>{
   final String URL = "http://192.168.99.100:8080";
 
   //final int port = 8080;
-  final String createUserURI = "/addUser";
+  final String createEmployeeURI = "/addUser";
 
   HttpClient httpClient = new HttpClient();
 
@@ -355,14 +354,14 @@ class CreateUserState extends State<CreateUser>{
 
   }
 
-  Future<Null> _saveUser() async{
+  Future<Null> _saveEmployee() async{
 
-   var requestBodyMap = {"name":_username,"dob":_dob.toIso8601String(),"age":_age};
+   var requestBodyMap = {"name":_employeename,"dob":_dob.toIso8601String(),"age":_age};
 
     var requestBodyJson = JSON.encode( requestBodyMap);
     print(requestBodyJson);
 
-    var request = await httpClient.postUrl(Uri.parse(URL+createUserURI))
+    var request = await httpClient.postUrl(Uri.parse(URL+createEmployeeURI))
         ..headers.add(HttpHeaders.ACCEPT, ContentType.JSON)
         ..headers.contentType=ContentType.JSON;
     
@@ -393,7 +392,7 @@ class CreateUserState extends State<CreateUser>{
       centerTitle: true,
       actions: <Widget>[
         new IconButton(icon: new Icon(Icons.save,), onPressed: () async {
-          var response = await _saveUser();
+          var response = await _saveEmployee();
          created? new SimpleDialog(
           title: new Text("Employee created!"),
           children: <Widget>[
@@ -422,7 +421,7 @@ class CreateUserState extends State<CreateUser>{
            autocorrect: false,
            onChanged: (String name){
 
-              this._username=name;
+              this._employeename=name;
            },
 
           ),
